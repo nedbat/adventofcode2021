@@ -39,3 +39,9 @@ def increases(seq):
 
 print(f"part 1: {increases(depths)}")
 print(f"part 2: {increases(sliding(depths, 3))}")
+
+# I didn't realize until I saw other solutions that you don't need to sum the
+# whole three-element window, you can just compare element 1 to element 4:
+
+increases = sum(b > a for a, b in zip(depths, depths[3:]))
+print(f"part 2: {increases}")
