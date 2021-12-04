@@ -62,7 +62,7 @@ def read_input(fname):
             boards.append(Board.from_lines(f))
     return nums, boards
 
-def play_game(fname):
+def wins_first(fname):
     nums, boards = read_input(fname)
     for n in nums:
         for board in boards:
@@ -71,9 +71,32 @@ def play_game(fname):
                 if board.wins():
                     return sum(board.unmarked()) * n
 
-def test_play_game():
-    assert play_game("day04_sample.txt") == 4512
+def test_wins_first():
+    assert wins_first("day04_sample.txt") == 4512
 
 if __name__ == "__main__":
-    ans = play_game("day04_input.txt")
+    ans = wins_first("day04_input.txt")
     print(f"part 1: {ans}")
+
+def wins_last(fname):
+    nums, boards = read_input(fname)
+    boards = set(boards)
+    for n in nums:
+        winners = set()
+        for board in boards:
+            if n in board:
+                board.mark_num(n)
+                if board.wins():
+                    if len(boards) == 1:
+                        return sum(board.unmarked()) * n
+                    else:
+                        winners.add(board)
+
+        boards -= winners
+
+def test_wins_last():
+    assert wins_last("day04_sample.txt") == 1924
+
+if __name__ == "__main__":
+    ans = wins_last("day04_input.txt")
+    print(f"part 2: {ans}")
