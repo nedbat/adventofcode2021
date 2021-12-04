@@ -1,6 +1,8 @@
 # https://adventofcode.com/2021/day/4
 
-from rich import print
+from rich.console import Console
+
+print = Console(highlight=False).print
 
 
 class Board:
@@ -13,12 +15,11 @@ class Board:
         return f"<Board {self.nums=}>"
 
     def print(self):
-        print(self.marked)
         for row in self.nums:
             for num in row:
                 marked = self.positions[num] in self.marked
-                open = "[red]" if marked else ""
-                close = "[/red]" if marked else ""
+                open = "[bold]" if marked else ""
+                close = "[/bold]" if marked else ""
                 print(f"{open}{num:3}{close}", end="")
             print()
         print()
