@@ -65,3 +65,36 @@ if __name__ == "__main__":
     with open("day05_input.txt") as f:
         ans = part1(f)
     print(f"part 1: {ans}")
+
+def direction(a, b):
+    if a == b:
+        return 0
+    return (b - a) / abs(b - a)
+
+def count_lines(lines):
+    counts = collections.Counter()
+    for x1, y1, x2, y2 in read_lines(lines):
+        #print(f"adding {x1,y1,x2,y2}")
+        dx = direction(x1, x2)
+        dy = direction(y1, y2)
+        x, y = x1, y1
+        counts[(x, y)] += 1
+        while (x, y) != (x2, y2):
+            x += dx
+            y += dy
+            counts[(x, y)] += 1
+        #print_lines(counts)
+
+    return counts
+
+def part2(lines):
+    counts = count_lines(lines)
+    return sum(1 for v in counts.values() if v > 1)
+
+def test_part2():
+    assert part2(TEST.splitlines()) == 12
+
+if __name__ == "__main__":
+    with open("day05_input.txt") as f:
+        ans = part2(f)
+    print(f"part 2: {ans}")
