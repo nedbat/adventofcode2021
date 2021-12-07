@@ -6,7 +6,7 @@ INPUT = [1101,1,29,67,1102,0,1,65,1008,65,35,66,1005,66,28,1,67,65,20,4,0,1001,6
 import statistics
 
 def least_fuel(poss):
-    goal = statistics.median(poss)
+    goal = statistics.median_low(poss)
     fuel = sum(abs(pos - goal) for pos in poss)
     return fuel
 
@@ -15,3 +15,25 @@ def test_least_fuel():
 
 if __name__ == "__main__":
     print(f"part 1: {least_fuel(INPUT)} fuel")
+
+def fuel(poss, goal):
+    fuel = 0
+    for pos in poss:
+        steps = abs(pos - goal)
+        fuel += (steps * (steps + 1)) // 2
+    return fuel
+
+def least_fuel_2(poss):
+    lo, hi = min(poss), max(poss)
+    best = 99999999999999999999
+    for goal in range(lo, hi+1):
+        f = fuel(poss, goal)
+        if f < best:
+            best = f
+    return best
+
+def test_least_fuel_2():
+    assert least_fuel_2(TEST) == 168
+
+if __name__ == "__main__":
+    print(f"part 2: {least_fuel_2(INPUT)} fuel")
