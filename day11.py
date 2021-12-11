@@ -4,7 +4,9 @@ import itertools
 from pathlib import Path
 
 import pytest
-from rich.console import Console
+import rich.console
+
+print = rich.console.Console(highlight=False).print
 
 def neighbors(x, y):
     if y > 0:
@@ -36,13 +38,12 @@ class Grid:
         return cls(Path(fname).read_text())
 
     def print(self):
-        con = Console(highlight=False)
         for l in self.octopi:
             for c in l:
                 if c == 0:
-                    con.print("[bold]0[/bold]", end="")
+                    print("[bold]0[/bold]", end="")
                 else:
-                    con.print(c, end="")
+                    print(c, end="")
             print()
 
     def step(self):
