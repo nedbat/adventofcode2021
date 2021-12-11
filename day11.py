@@ -93,3 +93,18 @@ def test_part1(nsteps, total):
 if __name__ == "__main__":
     ans = part1("day11_input.txt", 100)
     print(f"part 1: {ans}")
+
+def part2(fname):
+    # At what step do all the octopi flash?
+    grid = Grid.from_file(fname)
+    for nstep in itertools.count(start=1):
+        flashes = grid.step()
+        if flashes == 100:
+            return nstep
+
+def test_part2():
+    assert part2("day11_sample.txt") == 195
+
+if __name__ == "__main__":
+    ans = part2("day11_input.txt")
+    print(f"part 1: {ans}")
