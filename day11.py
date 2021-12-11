@@ -8,6 +8,7 @@ import rich.console
 
 print = rich.console.Console(highlight=False).print
 
+# I wasn't happy with this code:
 def neighbors(x, y):
     if y > 0:
         if x > 0:
@@ -25,6 +26,25 @@ def neighbors(x, y):
         yield (x, y + 1)
         if x < 9:
             yield (x + 1, y + 1)
+
+# bjs in #python suggested this:
+def neighbors(x, y):
+    for dx, dy in itertools.product([-1, 0, 1], repeat=2):
+        if dx == dy == 0:
+            continue
+        nx = x + dx
+        ny = y + dy
+        if (0 <= nx < 10) and (0 <= ny < 10):
+            yield nx, ny
+
+# I think I like this best:
+def neighbors(x, y):
+    for nx, ny in itertools.product([x-1, x, x+1], [y-1, y, y+1]):
+        if (nx, ny) == (x, y):
+            continue
+        if (0 <= nx < 10) and (0 <= ny < 10):
+            yield nx, ny
+
 
 def rangexy(xstop, ystop):
     return itertools.product(range(xstop), range(ystop))
