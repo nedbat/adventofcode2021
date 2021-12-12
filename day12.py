@@ -98,3 +98,38 @@ def test_paths_len(caves, paths_len):
 if __name__ == "__main__":
     all_paths = list(paths(read_caves(Path("day12_input.txt").read_text())))
     print(f"part 1: {len(all_paths)} paths")
+
+
+def paths2(caves):
+    yield from paths2_recursive(caves, "start", ["start"], set(), False)
+
+def paths2_recursive(caves, current, path, littles, little_twice):
+    for cave in caves[current]:
+        if cave == "start":
+            continue
+        next_little_twice = little_twice
+        added = False
+        if cave.islower():
+            if cave in littles:
+                if little_twice:
+                    continue
+                next_little_twice = True
+            else:
+                littles.add(cave)
+                added = True
+        path.append(cave)
+        if cave == "end":
+            yield list(path)
+        else:
+            yield from paths2_recursive(caves, cave, path, littles, next_little_twice)
+        path.pop()
+        if added:
+            littles.remove(cave)
+
+@pytest.mark.parametrize("caves, paths_len", [(SAMPLE1, 36), (SAMPLE2, 103), (SAMPLE3, 3509)])
+def test_paths2_len(caves, paths_len):
+    assert len(list(paths2(read_caves(caves)))) == paths_len
+
+if __name__ == "__main__":
+    all_paths = list(paths2(read_caves(Path("day12_input.txt").read_text())))
+    print(f"part 2: {len(all_paths)} paths")
