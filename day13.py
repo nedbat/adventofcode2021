@@ -33,3 +33,14 @@ if __name__ == "__main__":
     dots, folds = read_paper("day13_input.txt")
     folded = fold(dots, *folds[0])
     print(f"part 1: {len(folded)} dots visible after one fold")
+
+    for axis, where in folds:
+        dots = fold(dots, axis, where)
+
+    print("part 2:")
+    width = max(x for x, y in dots)
+    height = max(y for x, y in dots)
+    for y in range(height + 1):
+        for x in range(width + 1):
+            print("#" if (x, y) in dots else " ", end="")
+        print()
