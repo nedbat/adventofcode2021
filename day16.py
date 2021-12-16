@@ -39,10 +39,8 @@ def read_packet(reader):
             num = 0
             keep_reading = True
             while keep_reading:
-                next5 = reader.read_num(5)
-                keep_reading = next5 & 0b10000
-                num <<= 4
-                num += next5 & 0b01111
+                keep_reading = reader.read_num(1)
+                num = (num << 4) + reader.read_num(4)
             return ("lit", version, num)
         case _:
             length_type = reader.read_num(1)
