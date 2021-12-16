@@ -1,6 +1,7 @@
 # https://adventofcode.com/2021/day/16
 
 import itertools
+import math
 from pathlib import Path
 
 import pytest
@@ -84,3 +85,43 @@ if __name__ == "__main__":
     hexstring = Path("day16_input.txt").read_text().strip()
     ans = version_sum(parse_packet(hexstring))
     print(f"part 1: {ans}")
+
+def packet_value(packet):
+    match packet:
+        case ("lit", _, v):
+            return v
+        case ("op", _, 0, packets):
+            return sum(packet_value(p) for p in packets)
+        case ("op", _, 1, packets):
+            return math.prod(packet_value(p) for p in packets)
+        case ("op", _, 2, packets):
+            return min(packet_value(p) for p in packets)
+        case ("op", _, 3, packets):
+            return max(packet_value(p) for p in packets)
+        case ("op", _, 5, packets):
+            assert len(packets) == 2
+            return packet_value(packets[0]) > packet_value(packets[1])
+        case ("op", _, 6, packets):
+            assert len(packets) == 2
+            return packet_value(packets[0]) < packet_value(packets[1])
+        case ("op", _, 7, packets):
+            assert len(packets) == 2
+            return packet_value(packets[0]) == packet_value(packets[1])
+
+@pytest.mark.parametrize("hexstring, value", [
+    ("C200B40A82", 3),
+    ("04005AC33890", 54),
+    ("880086C3E88112", 7),
+    ("CE00C43D881120", 9),
+    ("D8005AC2A8F0", 1),
+    ("F600BC2D8F", 0),
+    ("9C005AC2F8F0", 0),
+    ("9C0141080250320F1802104A08", 1),
+])
+def test_packet_value(hexstring, value):
+    assert packet_value(parse_packet(hexstring)) == value
+
+if __name__ == "__main__":
+    hexstring = Path("day16_input.txt").read_text().strip()
+    ans = packet_value(parse_packet(hexstring))
+    print(f"part 2: {ans}")
