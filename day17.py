@@ -74,19 +74,28 @@ def brute(llr, urr):
         minvx_limit += minvx
         if minvx_limit >= llr.x:
             break
+    # maxx is the last column of the target. Beyond that, the first step
+    # falls to the right of the range.
     maxvx = urr.x
+    # miny is the lowest row of the target. Beyond that, the first step
+    # falls below the range.
     minvy = llr.y 
+    # maxy is the same as minvy, but upward. Once the y velocity changes to
+    # zero and the projectile starts coming down, the same y velocities will
+    # repeat on the way down in the reverse order. So the projectile will
+    # eventually land on y=0 again. Then the next step down will be the same
+    # as the initial velocity, but downward. So the fastest that can land in
+    # the range is the lower row of the target.
     maxvy = -llr.y
 
     max_maxy = 0
     num_ok = 0
-    for vx in range(minvx, maxvx + 1):
-        for vy in range(minvy, maxvy + 1):
-            ok, maxy, why = check_trajectory(Pt(vx, vy), llr, urr)
-            if ok:
-                num_ok += 1
-                if maxy > max_maxy:
-                    max_maxy = maxy
+    for vel in pt_range(minvx, maxvx, minvy, maxvy):
+        ok, maxy, why = check_trajectory(vel, llr, urr)
+        if ok:
+            num_ok += 1
+            if maxy > max_maxy:
+                max_maxy = maxy
 
     return max_maxy, num_ok
 
