@@ -67,7 +67,7 @@ def pt_range(lx, ux, ly, uy):
         for y in range(ly, uy + 1):
             yield Pt(x, y)
 
-def brute_part1(llr, urr):
+def brute(llr, urr):
     # Find the minx that will put the vertical fall into the range.
     minvx_limit = 0
     for minvx in itertools.count():
@@ -79,16 +79,21 @@ def brute_part1(llr, urr):
     maxvy = -llr.y
 
     max_maxy = 0
+    num_ok = 0
     for vx in range(minvx, maxvx + 1):
         for vy in range(minvy, maxvy + 1):
             ok, maxy, why = check_trajectory(Pt(vx, vy), llr, urr)
-            if ok and maxy > max_maxy:
-                max_maxy = maxy
+            if ok:
+                num_ok += 1
+                if maxy > max_maxy:
+                    max_maxy = maxy
 
-    return max_maxy
+    return max_maxy, num_ok
 
-def test_brute_part1():
-    assert brute_part1(*SAMPLE) == 45
+def test_brute():
+    assert brute(*SAMPLE) == (45, 112)
 
 if __name__ == "__main__":
-    print(f"part 1: {brute_part1(*INPUT)}")
+    highest, num_ok = brute(*INPUT)
+    print(f"part 1: {highest}")
+    print(f"part 2: {num_ok}")
