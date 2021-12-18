@@ -15,7 +15,7 @@ class SfNum:
     @classmethod
     def from_text(cls, text):
         return cls(ast.literal_eval(text))
-    
+
     def __str__(self):
         return str(self.nums)
 
@@ -57,7 +57,7 @@ class SfNum:
                     left_num = val
                     left_num_idx = idx
                 elif len(idx) == 4:
-                    # This is the pair to explode 
+                    # This is the pair to explode
                     if left_num_idx is not None:
                         self[left_num_idx] = left_num + val[0]
                     add_to_right = val[1]
@@ -147,3 +147,16 @@ def test_part2():
 
 if __name__ == "__main__":
     print(f"part 2: {part2('day18_input.txt')}")
+
+
+# Other solution approaches:
+#
+# - operate on a list of tokens: ["[", "[", 1, 2, "]", ...
+#
+# - represent the tree as a flat list of numbers and a list of depths:
+#   (from Rodrigo in discord):
+#     For example, the snail [[[1, 2], 3], [4, [5, [[6, 7], 8]]]] is represented by
+#      - values [1, 2, 3, 4, 5, 6, 7, 8]; and
+#      - depths   [3, 2, 1, 2, 3, 5, 4]
+#      (he's representing the depths of the commas)
+#
