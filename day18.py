@@ -3,6 +3,7 @@
 import ast
 import copy
 import math
+import itertools
 from pathlib import Path
 
 import pytest
@@ -129,3 +130,20 @@ def test_part1():
 
 if __name__ == "__main__":
     print(f"part 1: {part1('day18_input.txt')}")
+
+def part2(fname):
+    sfnums = list(read_sfnums(fname))
+    best = -1
+    for i, j in itertools.product(range(len(sfnums)), repeat=2):
+        if i == j:
+            continue
+        mag = (sfnums[i] + sfnums[j]).magnitude()
+        if mag > best:
+            best = mag
+    return best
+
+def test_part2():
+    assert part2("day18_sample1.txt") == 3993
+
+if __name__ == "__main__":
+    print(f"part 2: {part2('day18_input.txt')}")
