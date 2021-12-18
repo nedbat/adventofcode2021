@@ -1,0 +1,20 @@
+# Licensed under the Apache License: http://www.apache.org/licenses/LICENSE-2.0
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 80
+trim_trailing_whitespace = true
+
+[*.py]
+max_line_length = 100
+
+[*.diff]
+trim_trailing_whitespace = false
+
+[.git/*]
+trim_trailing_whitespace = false
