@@ -32,7 +32,7 @@ class Image:
     def enhance(self, algorithm):
         minx, maxx, miny, maxy = self.bounds()
         npts = set()
-        ndarkbg = (0 in algorithm) != self.darkbg
+        ndarkbg = (511 if self.darkbg else 0) in algorithm
         for x in range(minx - 1, maxx + 2):
             for y in range(miny - 1, maxx + 2):
                 xynum = self.neighborhood_as_number(x, y)
