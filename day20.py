@@ -33,8 +33,8 @@ class Image:
         minx, maxx, miny, maxy = self.bounds()
         npts = set()
         ndarkbg = (0 in algorithm) != self.darkbg
-        for x in range(minx - 2, maxx + 3):
-            for y in range(miny - 2, maxx + 3):
+        for x in range(minx - 1, maxx + 2):
+            for y in range(miny - 1, maxx + 2):
                 xynum = self.neighborhood_as_number(x, y)
                 if (xynum in algorithm) == ndarkbg:
                     npts.add((x, y))
