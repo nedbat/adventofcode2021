@@ -3,6 +3,8 @@
 import itertools
 from pathlib import Path
 
+N5 = list(itertools.product(range(-2, 3), repeat=2))
+
 class Image:
     def __init__(self, pts, darkbg):
         # darkbg: True means the bg is dark, and pts are light pixels
@@ -36,6 +38,23 @@ class Image:
                 xynum = self.neighborhood_as_number(x, y)
                 if (xynum in algorithm) == ndarkbg:
                     npts.add((x, y))
+        return Image(npts, ndarkbg)
+
+    def enhance_slower(self, algorithm):
+        # This seemed like a better way: consider each lit point, rather than
+        # every point in the grid, but it's 50% slower?
+        considered = set()
+        npts = set()
+        ndarkbg = (0 in algorithm) != self.darkbg
+        for x, y in self.pts:
+            for dx, dy in N5:
+                nx = x + dx
+                ny = y + dy
+                if (nx, ny) not in considered:
+                    xynum = self.neighborhood_as_number(nx, ny)
+                    if (xynum in algorithm) == ndarkbg:
+                        npts.add((nx, ny))
+                    considered.add((nx, ny))
         return Image(npts, ndarkbg)
 
 def read_input(fname):
