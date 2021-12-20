@@ -45,14 +45,26 @@ def read_input(fname):
         pts = {(x, y) for y, line in enumerate(f) for x, c in enumerate(line) if c == "#"}
     return algorithm, Image(pts, True)
 
-def part1(fname):
+def enhancen(fname, n):
     algorithm, image = read_input(fname)
-    image = image.enhance(algorithm)
-    image = image.enhance(algorithm)
+    for _ in range(n):
+        image = image.enhance(algorithm)
     return image.census()
+
+def part1(fname):
+    return enhancen(fname, 2)
 
 def test_part1():
     assert part1("day20_sample.txt") == 35
 
 if __name__ == "__main__":
     print(f"part 1: {part1('day20_input.txt')}")
+
+def part2(fname):
+    return enhancen(fname, 50)
+
+def test_part2():
+    assert part2("day20_sample.txt") == 3351
+
+if __name__ == "__main__":
+    print(f"part 2: {part2('day20_input.txt')}")
