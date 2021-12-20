@@ -133,14 +133,15 @@ if __name__ == "__main__":
 
 def part2(fname):
     sfnums = list(read_sfnums(fname))
-    best = -1
-    for i, j in itertools.product(range(len(sfnums)), repeat=2):
-        if i == j:
-            continue
-        mag = (sfnums[i] + sfnums[j]).magnitude()
-        if mag > best:
-            best = mag
-    return best
+    # best = -1
+    # for i, j in itertools.product(range(len(sfnums)), repeat=2):
+    #     if i == j:
+    #         continue
+    #     mag = (sfnums[i] + sfnums[j]).magnitude()
+    #     if mag > best:
+    #         best = mag
+    # return best
+    return max((num1 + num2).magnitude() for num1, num2 in itertools.permutations(sfnums, 2))
 
 def test_part2():
     assert part2("day18_sample1.txt") == 3993
