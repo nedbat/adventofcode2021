@@ -1,6 +1,8 @@
 # https://adventofcode.com/2021/day/21
 # Dirac Dice
 
+import collections
+import functools
 import itertools
 
 class DeterministicDie:
@@ -50,3 +52,36 @@ def test_part1():
 
 if __name__ == "__main__":
     print(f"part 1: {part1(*INPUT)}")
+
+
+SPLITS = list(collections.Counter(sum(d) for d in itertools.product([1,2,3], repeat=3)).items())
+
+@functools.cache
+def num_wins(p1, s1, p2, s2, goal):
+    """
+    Player 1 is at p1 with a score of s1.
+    Player 2 is at p2 with a score of s2.
+    Return a pair, the number of universes each wins in.
+    """
+    if s1 >= goal:
+        return 1, 0
+    if s2 >= goal:
+        return 0, 1
+    tw1 = tw2 = 0
+    for rolls, num in SPLITS:
+        np1 = (p1 + rolls) % 10
+        ns1 = s1 + np1 + 1
+        w2, w1 = num_wins(p2, s2, np1, ns1, goal)
+        tw1 += w1 * num
+        tw2 += w2 * num
+    return tw1, tw2
+
+def part2(p1, p2):
+    w1, w2 = num_wins(p1-1, 0, p2-1, 0, 21)
+    return max(w1, w2)
+
+def test_part2():
+    assert part2(*SAMPLE) == 444356092776315
+
+if __name__ == "__main__":
+    print(f"part 2: {part2(*INPUT)}")
