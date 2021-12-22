@@ -8,6 +8,16 @@ from pathlib import Path
 
 import pytest
 
+def timeit(func):
+    import time
+    def wrapped(*args, **kwargs):
+        start = time.time()
+        ret = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__}: {end - start:.4f}s")
+        return ret
+    return wrapped
+
 @dataclasses.dataclass(frozen=True)
 class Xyz:
     x: int
@@ -157,6 +167,7 @@ def count_octtree_cubes(oct, ol, oh):
         count_octtree_cubes(oct[8], Xyz(omid.x, omid.y, omid.z), Xyz(oh.x, oh.y, oh.z)),
     ])
 
+@timeit
 def part2(fname):
     oct = False
     l = -(2 ** 17)
@@ -172,3 +183,51 @@ def test_part2():
 
 if __name__ == "__main__":
     print(f"part 2: {part2('day22_input.txt')}")
+
+# Tracking overlapping intersections seems easier.
+
+@dataclasses.dataclass(frozen=True)
+class Cuboid:
+    l: Xyz
+    h: Xyz
+
+    def volume(self):
+        d = self.h - self.l
+        return d.x * d.y * d.z
+
+    def __bool__(self):
+        return bool(self.volume())
+
+    def intersect(self, other):
+        # If the cubes don't overlap, return None.
+        if (
+            self.h.x <= other.l.x or
+            self.l.x >= other.h.x or
+            self.h.y <= other.l.y or
+            self.l.y >= other.h.y or
+            self.h.z <= other.l.z or
+            self.l.z >= other.h.z
+        ):
+            return None
+
+        return Cuboid(
+            Xyz(max(self.l.x, other.l.x), max(self.l.y, other.l.y), max(self.l.z, other.l.z)),
+            Xyz(min(self.h.x, other.h.x), min(self.h.y, other.h.y), min(self.h.z, other.h.z)),
+        )
+
+@timeit
+def part2b(fname):
+    cubes = []
+    for op, xyzl, xyzh in read_steps(fname):
+        new_cube = Cuboid(xyzl, xyzh)
+        intersects = [(-f, ci) for f, c in cubes if (ci := new_cube.intersect(c))]
+        cubes.extend(intersects)
+        if op == "on":
+            cubes.append((1, new_cube))
+    return sum(c.volume() * f for f, c in cubes)
+
+def test_part2b():
+    assert part2b("day22_sample2.txt") == 2758514936282235
+
+if __name__ == "__main__":
+    print(f"part 2: {part2b('day22_input.txt')}")
