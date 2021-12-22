@@ -52,18 +52,23 @@ def clip_range(lo, hi, minlo, maxhi):
 def test_clip_range(lo, hi, nums):
     assert list(clip_range(lo, hi, -3, 4)) == nums
 
-def part1(fname):
+def count_cubes(steps, ol, oh):
     cubes = set()
-    for op, xyzl, xyzh in read_steps(fname):
-        xr = clip_range(xyzl.x, xyzh.x, -50, 51)
-        yr = clip_range(xyzl.y, xyzh.y, -50, 51)
-        zr = clip_range(xyzl.z, xyzh.z, -50, 51)
+    for op, xyzl, xyzh in steps:
+        xr = clip_range(xyzl.x, xyzh.x, ol.x, oh.x)
+        yr = clip_range(xyzl.y, xyzh.y, ol.y, oh.y)
+        zr = clip_range(xyzl.z, xyzh.z, ol.z, oh.z)
         for xyz in itertools.product(xr, yr, zr):
             if op == "on":
                 cubes.add(xyz)
             elif xyz in cubes:
                 cubes.remove(xyz)
     return len(cubes)
+
+def part1(fname):
+    ol = Xyz(-50, -50, -50)
+    oh = Xyz(51, 51, 51)
+    return count_cubes(read_steps(fname), ol, oh)
 
 def test_part1():
     assert part1("day22_sample.txt") == 590784
@@ -77,8 +82,16 @@ if __name__ == "__main__":
 #
 #   [clll, cllh, clhl, clhh, chll, chlh, chhl, chhh] means the cube
 #   is subdivided into 8 subcubes.
+#
+# Strict binary takes too long, let's try replaying steps for smaller nodes.
 
 def run_step(oct, ol, oh, op, xyzl, xyzh):
+
+    # Are we already in a filled region, and this op is a no-op?
+    if oct is True and op == "on":
+        return True
+    if oct is False and op == "off":
+        return False
 
     # Is the desired cube entirely outside this octbox?
     if oh.x <= xyzl.x or xyzh.x <= ol.x:
@@ -96,9 +109,14 @@ def run_step(oct, ol, oh, op, xyzl, xyzh):
     ):
         return op == "on"
 
+    # If the box is small enough, we'll count explicitly later, store None
+    side = oh.x - ol.x
+    if side <= 128:
+        return None
+
     # Have to subdivide.
-    side = (oh.x - ol.x) // 2
-    omid = ol + Xyz(side, side, side)
+    side2 = (oh.x - ol.x) // 2
+    omid = ol + Xyz(side2, side2, side2)
     if isinstance(oct, bool):
         oct = [oct] * 8
     return [
@@ -113,22 +131,47 @@ def run_step(oct, ol, oh, op, xyzl, xyzh):
     ]
 
 
-def count_cubes(oct, side):
+def count_octtree_cubes(oct, steps, ol, oh):
     if oct is False:
         return 0
     if oct is True:
-        return side ** 3
-    return sum(count_cubes(o, side // 2) for o in oct)
+        return (oh.x - ol.x) ** 3
+    if oct is None:
+        # replay the steps for this bounding box
+        return count_cubes(steps, ol, oh)
+
+    side2 = (oh.x - ol.x) // 2
+    omid = ol + Xyz(side2, side2, side2)
+    return sum([
+        count_octtree_cubes(oct[0], steps, Xyz(ol.x, ol.y, ol.z), Xyz(omid.x, omid.y, omid.z)),
+        count_octtree_cubes(oct[1], steps, Xyz(ol.x, ol.y, omid.z), Xyz(omid.x, omid.y, oh.z)),
+        count_octtree_cubes(oct[2], steps, Xyz(ol.x, omid.y, ol.z), Xyz(omid.x, oh.y, omid.z)),
+        count_octtree_cubes(oct[3], steps, Xyz(ol.x, omid.y, omid.z), Xyz(omid.x, oh.y, oh.z)),
+        count_octtree_cubes(oct[4], steps, Xyz(omid.x, ol.y, ol.z), Xyz(oh.x, omid.y, omid.z)),
+        count_octtree_cubes(oct[5], steps, Xyz(omid.x, ol.y, omid.z), Xyz(oh.x, omid.y, oh.z)),
+        count_octtree_cubes(oct[6], steps, Xyz(omid.x, omid.y, ol.z), Xyz(oh.x, oh.y, omid.z)),
+        count_octtree_cubes(oct[7], steps, Xyz(omid.x, omid.y, omid.z), Xyz(oh.x, oh.y, oh.z)),
+    ])
+
+def count_nones(oct):
+    if oct is None:
+        return 1
+    if isinstance(oct, bool):
+        return 0
+    return sum(count_nones(o) for o in oct)
 
 def part2(fname):
     oct = False
-    l = -100_000
+    l = -(2 ** 17)
     h = l + 2 ** 18
     ol = Xyz(l, l, l)
     oh = Xyz(h, h, h)
-    for op, xyzl, xyzh in read_steps(fname):
+    steps = list(read_steps(fname))
+    for i, (op, xyzl, xyzh) in enumerate(steps):
+        print(i, op)
         oct = run_step(oct, ol, oh, op, xyzl, xyzh)
-    return count_cubes(oct, 2 ** 18)
+    print(f"{count_nones(oct)} Nones")
+    return count_octtree_cubes(oct, steps, ol, oh)
 
 def test_part2():
     assert part2("day22_sample2.txt") == 2758514936282235
