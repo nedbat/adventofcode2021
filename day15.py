@@ -63,7 +63,7 @@ def test_part2():
 
 if __name__ == "__main__":
     ans = part2("day15_input.txt")
-    print(f"part 2: {ans}")
+    print(f"part 2: {ans} (wrong)")
 
 
 class CaveState(astar.State):
@@ -80,7 +80,7 @@ class CaveState(astar.State):
 
     def __hash__(self):
         return hash((self.x, self.y))
-    
+
     def __eq__(self, other):
         return (self.x, self.y) == (other.x, other.y)
 
@@ -111,8 +111,8 @@ class CaveState(astar.State):
         return f"({self.x}, {self.y})"
 
 def part1a(fname):
-    cave = read_cave(fname) 
-    cost = astar.search(CaveState.first(cave))
+    cave = read_cave(fname)
+    best, cost = astar.search(CaveState.first(cave))
     return cost
 
 def test_part1a():
@@ -123,9 +123,9 @@ if __name__ == "__main__":
     print(f"part 1: {ans}")
 
 def part2a(fname):
-    cave = read_cave(fname) 
+    cave = read_cave(fname)
     cave = expand_cave(cave, 5)
-    cost = astar.search(CaveState.first(cave))
+    best, cost = astar.search(CaveState.first(cave))
     return cost
 
 def test_part2a():
@@ -133,7 +133,7 @@ def test_part2a():
 
 if __name__ == "__main__":
     ans = part2a("day15_input.txt")
-    print(f"part 2: {ans}")
+    print(f"part 2: {ans} (right)")
 
 # What happened here: I started with A*, but I was using the full path as the
 # state, and it was taking forever.  So I changed to the diagonal march, but

@@ -121,7 +121,7 @@ class AStar:
                 if debug:
                     print(f"Best now is {best.summary()}, cost = {cost}")
                 if best.is_goal():
-                    return cost
+                    return best, cost
                 if should_log and should_log.now():
                     print(f"cost {cost}; {len(self.visited):,d} visited, {len(self.candidates):,d} candidates, {best.summary()}")
                 self.visited.add(best)
@@ -138,5 +138,5 @@ class AStar:
 
 
 def search(*args, **kwargs):
-    """Search a state space, starting with `start_state`. Returns the cost to reach the goal."""
+    """Search a state space, starting with `start_state`. Returns the final state and cost to reach the goal."""
     return AStar().search(*args, **kwargs)

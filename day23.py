@@ -7,12 +7,8 @@
   #D#C#B#C#
   #########
 
-# State:
-# ("DB", "CA", "BA", "CD", "...........")
-#                           xx.x.x.x.xx
-
-SAMPLE = ["AB", "DC", "CB", "AD"]
-INPUT = ["DB", "CA", "BA", "CD"]
+SAMPLE = ["BCBD", "ADCA"]
+INPUT = ["BAAD", "DCBC"]
 
 import astar
 
@@ -28,18 +24,27 @@ class AmphipodState(astar.State):
     HALLROOMPOS = [2, 4, 6, 8]
     HALLPOS = [0, 1, 3, 5, 7, 9, 10]
 
-    def __init__(self, roomrows, hallway):
+    def __init__(self, roomrows, hallway, prev=None, cost=0):
         # roomrows are [[None, 0, None, 1], ...]
         self.roomrows = roomrows
         # hallway is [None, None, None, 0, None, 1, ...]
         self.hallway = hallway
+        self.prev = prev
+        self.cost = cost
 
     @classmethod
-    def first(cls, rooms):
-        roomrows = [
-            ["ABCD".find(r[1]) for r in rooms],
-            ["ABCD".find(r[0]) for r in rooms],
-        ]
+    def first(cls, rooms, part2=False):
+        rtop = ["ABCD".find(a) for a in rooms[0]]
+        rbottom = ["ABCD".find(a) for a in rooms[1]]
+        if part2:
+            roomrows = [
+                rtop,
+                [3, 2, 1, 0],
+                [3, 1, 0, 2],
+                rbottom,
+            ]
+        else:
+            roomrows = [rtop, rbottom]
         return cls(roomrows, [None] * 11)
 
     def __hash__(self):
@@ -54,20 +59,36 @@ class AmphipodState(astar.State):
     CHARS = dict(enumerate("ABCD")) | {None: "."}
 
     def print(self):
+        print(f"{self.cost}$:")
         print("#" + "".join(self.CHARS[v] for v in self.hallway) + "#")
         for i, r in enumerate(self.roomrows):
             end = "##" if i == 0 else "  "
             print(end + "#" + "#".join(self.CHARS[v] for v in r) + "#" + end)
 
+    def print_path(self):
+        states = []
+        s = self
+        while s is not None:
+            states.append(s)
+            s = s.prev
+        for s in reversed(states):
+            s.print()
+            print()
+
     def next_states_print(self, cost):
-        print("-" * 80)
-        self.print()
-        print()
-        for ns in self._next_states_work(cost):
-            print(f"cost: {ns[1]}")
-            ns[0].print()
-            yield ns
-        import time; time.sleep(1)
+        # For printing random sample of states, for debugging.
+        import random
+        nss = self.next_states_work(cost)
+        if random.random() > .999:
+            print("-" * 80)
+            self.print()
+            print()
+            for ns in nss:
+                ns[0].print()
+                yield ns
+            import time; time.sleep(1)
+        else:
+            yield from nss
 
     def next_states_work(self, cost):
         # Can anyone move out of a room?
@@ -77,6 +98,9 @@ class AmphipodState(astar.State):
                     continue
                 if any(self.roomrows[above][roompos] is not None for above in range(irow)):
                     # we're blocked from exiting this room
+                    continue
+                if amph == roompos and all(self.roomrows[below][roompos] == amph for below in range(irow+1, len(self.roomrows))):
+                    # we're where we should be, don't move
                     continue
                 hallroompos = self.HALLROOMPOS[roompos]
                 for hallpos in self.HALLPOS:
@@ -110,6 +134,9 @@ class AmphipodState(astar.State):
                         new_roomrows[irow] = new_row
                         yield (AmphipodState(new_roomrows, new_hallway), cost + move_cost)
                         break # No point moving to a higher row
+                    elif row[amph] != amph:
+                        # There's a wrong amph here, so don't move into this room
+                        break
 
     next_states = next_states_work
 
@@ -122,10 +149,23 @@ class AmphipodState(astar.State):
         return cost
 
 def part1(start):
-    return astar.search(AmphipodState.first(start))
+    best, cost = astar.search(AmphipodState.first(start))
+    #best.print_path()
+    return cost
 
 def test_part1():
     assert part1(SAMPLE) == 12521
 
 if __name__ == "__main__":
     print(f"part 1: {part1(INPUT)}")
+
+def part2(start):
+    best, cost = astar.search(AmphipodState.first(start, part2=True))
+    #best.print_path()
+    return cost
+
+def test_part2():
+    assert part2(SAMPLE) == 44169
+
+if __name__ == "__main__":
+    print(f"part 2: {part2(INPUT)}")
