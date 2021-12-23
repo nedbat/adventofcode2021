@@ -28,105 +28,97 @@ class AmphipodState(astar.State):
     HALLROOMPOS = [2, 4, 6, 8]
     HALLPOS = [0, 1, 3, 5, 7, 9, 10]
 
-    def __init__(self, roomtops, roombots, hallway):
-        # room{tops,bots} are [None, 0, None, 1]
-        self.roomtops = roomtops
-        self.roombots = roombots
+    def __init__(self, roomrows, hallway):
+        # roomrows are [[None, 0, None, 1], ...]
+        self.roomrows = roomrows
         # hallway is [None, None, None, 0, None, 1, ...]
         self.hallway = hallway
 
     @classmethod
     def first(cls, rooms):
-        roomtops = ["ABCD".find(r[1]) for r in rooms]
-        roombots = ["ABCD".find(r[0]) for r in rooms]
-        return cls(roomtops, roombots, [None] * 11)
+        roomrows = [
+            ["ABCD".find(r[1]) for r in rooms],
+            ["ABCD".find(r[0]) for r in rooms],
+        ]
+        return cls(roomrows, [None] * 11)
 
     def __hash__(self):
-        return hash(tuple(self.roomtops)) + hash(tuple(self.roombots)) + hash(tuple(self.hallway))
+        return sum(hash(tuple(r)) for r in self.roomrows) + hash(tuple(self.hallway))
 
     def __eq__(self, other):
-        return self.roomtops == other.roomtops and self.roombots == other.roombots and self.hallway == other.hallway
+        return self.roomrows == other.roomrows and self.hallway == other.hallway
 
     def is_goal(self):
-        return self.roomtops == self.roombots == [0, 1, 2, 3]
+        return all(r == [0, 1, 2, 3] for r in self.roomrows)
 
     CHARS = dict(enumerate("ABCD")) | {None: "."}
 
     def print(self):
         print("#" + "".join(self.CHARS[v] for v in self.hallway) + "#")
-        print("###" + "#".join(self.CHARS[v] for v in self.roomtops) + "###")
-        print("  #" + "#".join(self.CHARS[v] for v in self.roombots) + "#  ")
+        for i, r in enumerate(self.roomrows):
+            end = "##" if i == 0 else "  "
+            print(end + "#" + "#".join(self.CHARS[v] for v in r) + "#" + end)
 
     def next_states_print(self, cost):
         print("-" * 80)
         self.print()
         print()
-        for ns in self._next_states(cost):
+        for ns in self._next_states_work(cost):
             print(f"cost: {ns[1]}")
             ns[0].print()
             yield ns
         import time; time.sleep(1)
 
-    def next_states(self, cost):
+    def next_states_work(self, cost):
         # Can anyone move out of a room?
-        for roompos, amph in enumerate(self.roomtops):
-            if amph is not None:
+        for irow, row in enumerate(self.roomrows):
+            for roompos, amph in enumerate(row):
+                if amph is None:
+                    continue
+                if any(self.roomrows[above][roompos] is not None for above in range(irow)):
+                    # we're blocked from exiting this room
+                    continue
                 hallroompos = self.HALLROOMPOS[roompos]
                 for hallpos in self.HALLPOS:
                     if all(self.hallway[hp] is None for hp in from_to(hallroompos, hallpos)):
-                        move_cost = (1 + abs(hallroompos - hallpos)) * 10 ** amph
+                        move_cost = (irow + 1 + abs(hallroompos - hallpos)) * 10 ** amph
                         new_hallway = self.hallway.copy()
                         new_hallway[hallpos] = amph
-                        new_roomtops = self.roomtops.copy()
-                        new_roomtops[roompos] = None
-                        yield (AmphipodState(new_roomtops, self.roombots, new_hallway), cost + move_cost)
-        for roompos, amph in enumerate(self.roombots):
-            if self.roomtops[roompos] is None and amph is not None:
-                hallroompos = self.HALLROOMPOS[roompos]
-                for hallpos in self.HALLPOS:
-                    if all(self.hallway[hp] is None for hp in from_to(hallroompos, hallpos)):
-                        move_cost = (2 + abs(hallroompos - hallpos)) * 10 ** amph
-                        new_hallway = self.hallway.copy()
-                        new_hallway[hallpos] = amph
-                        new_roombots = self.roombots.copy()
-                        new_roombots[roompos] = None
-                        yield (AmphipodState(self.roomtops, new_roombots, new_hallway), cost + move_cost)
+                        new_row = self.roomrows[irow].copy()
+                        new_row[roompos] = None
+                        new_roomrows = self.roomrows.copy()
+                        new_roomrows[irow] = new_row
+                        yield (AmphipodState(new_roomrows, new_hallway), cost + move_cost)
 
         # Can anyone move from the hall into a room?
         for hallpos, amph in enumerate(self.hallway):
             if amph is None:
                 continue
-            roompos = self.HALLROOMPOS[amph]
-            step_dir = cmp(roompos, hallpos)
-            hallway_clear = all(self.hallway[hp] is None for hp in from_to(hallpos + step_dir, roompos))
-            room_ok = self.roombots[amph] in (None, amph) and self.roomtops[amph] is None
-            # print(f"@@ {hallpos=}, {amph=}, {hallway_clear=}, {roompos=}, {step_dir=}, {room_ok=}")
-            if hallway_clear and room_ok:
-                if self.roombots[amph] is None:
-                    move_cost = (2 + abs(roompos - hallpos)) * 10 ** amph
-                    new_hallway = self.hallway.copy()
-                    new_hallway[hallpos] = None
-                    new_roombots = self.roombots.copy()
-                    new_roombots[amph] = amph
-                    # print("@@@@")
-                    yield (AmphipodState(self.roomtops, new_roombots, new_hallway), cost + move_cost)
-                else:
-                    move_cost = (1 + abs(roompos - hallpos)) * 10 ** amph
-                    new_hallway = self.hallway.copy()
-                    new_hallway[hallpos] = None
-                    new_roomtops = self.roomtops.copy()
-                    new_roomtops[amph] = amph
-                    # print("@@@@")
-                    yield (AmphipodState(new_roomtops, self.roombots, new_hallway), cost + move_cost)
+            hallroompos = self.HALLROOMPOS[amph]
+            step_dir = cmp(hallroompos, hallpos)
+            hallway_clear = all(self.hallway[hp] is None for hp in from_to(hallpos + step_dir, hallroompos))
+            if hallway_clear:
+                for irow in range(len(self.roomrows) - 1, -1, -1):
+                    row = self.roomrows[irow]
+                    if row[amph] is None:
+                        move_cost = (irow + 1 + abs(hallroompos - hallpos)) * 10 ** amph
+                        new_hallway = self.hallway.copy()
+                        new_hallway[hallpos] = None
+                        new_row = self.roomrows[irow].copy()
+                        new_row[amph] = amph
+                        new_roomrows = self.roomrows.copy()
+                        new_roomrows[irow] = new_row
+                        yield (AmphipodState(new_roomrows, new_hallway), cost + move_cost)
+                        break # No point moving to a higher row
+
+    next_states = next_states_work
 
     def guess_completion_cost(self):
         cost = 0
-        for i, amph in enumerate(self.roomtops):
-            if amph != i:
-                cost += 10 ** i
-        for i, amph in enumerate(self.roombots):
-            if amph != i:
-                cost += 2 * 10 ** i
+        for irow, row in enumerate(self.roomrows):
+            for i, amph in enumerate(row):
+                if amph != i:
+                    cost += (irow + 1) * 10 ** i
         return cost
 
 def part1(start):
