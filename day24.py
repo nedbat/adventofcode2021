@@ -56,20 +56,22 @@ def z26(z):
         z //= 26
     return digits[::-1]
 
-divzs = [ 1,  1,  1, 26, 26,  1,  1,  26,  1, 26,  1,  26, 26, 26]
-addxs = [12, 12, 12, -9, -9, 14, 14, -10, 15, -2, 11, -15, -9, -3]
-addys = [ 9,  4,  2,  5,  1,  6, 11,  15,  7, 12, 15,   9, 12, 12]
-inps =  [ 3,  9,  9,  2,  4,  9,  8,   9,  4,  9,  9,   9,  6,  9]
+if __name__ == "__main__":
+    divzs = [ 1,  1,  1, 26, 26,  1,  1,  26,  1, 26,  1,  26, 26, 26]
+    addxs = [12, 12, 12, -9, -9, 14, 14, -10, 15, -2, 11, -15, -9, -3]
+    addys = [ 9,  4,  2,  5,  1,  6, 11,  15,  7, 12, 15,   9, 12, 12]
+    inps =  [ 1,  6,  8,  1,  1,  4,  1,   2,  1,  6,  1,   1,  1,  7]
+    # lg:   [ 3,  9,  9,  2,  4,  9,  8,   9,  4,  9,  9,   9,  6,  9]
+    # sm    [ 1,  6,  8,  1,  1,  4,  1,   2,  1,  6,  1,   1,  1,  7]
 
-z = 0
-for inp, divz, addx, addy in zip(inps, divzs, addxs, addys):
-    print(inp, z26(z))
-    x = (z % 26) + addx
-    z //= divz
-    #print(f"{inp=}, {x=}")
-    if inp != x:
-        z *= 26
-        z += inp + addy
-print(z26(z))
-
-# 39924989499969
+    z = 0
+    for inp, divz, addx, addy in zip(inps, divzs, addxs, addys):
+        #print(inp, z26(z))
+        x = (z % 26) + addx
+        z //= divz
+        if inp != x:
+            z *= 26
+            z += inp + addy
+    # print()
+    # print(z, z26(z))
+    print("".join(str(i) for i in inps))
