@@ -2,76 +2,6 @@
 
 from pathlib import Path
 
-def make_ast(fname):
-    num_inputs = 0
-    regs = dict.fromkeys("xyzw", ("num", 0))
-
-    def valnode(val):
-        try:
-            val = int(val)
-            return ("num", val)
-        except ValueError:
-            return regs[val]
-
-    for line in Path(fname).open():
-        match line.split():
-            case ["inp", reg]:
-                regs[reg] = ("inp", num_inputs)
-                num_inputs += 1
-
-            case ["add", reg, val]:
-                r = regs[reg]
-                if r == ("num", 0):
-                    regs[reg] = valnode(val)
-                elif val != ("num", 0):
-                    regs[reg] = ("add", r, valnode(val))
-
-            case ["mul", reg, "0"]:
-                regs[reg] = ("num", 0)
-
-            case ["mul", reg, val]:
-                assert val != "1"
-                regs[reg] = ("mul", regs[reg], valnode(val))
-
-            case ["div", reg, "1"]:
-                pass
-
-            case ["div", reg, val]:
-                r = regs[reg]
-                if r != ("num", 0):
-                    regs[reg] = ("div", r, valnode(val))
-
-            case ["mod", reg, val]:
-                assert val != "1"
-                r = regs[reg]
-                if r != ("num", 0):
-                    regs[reg] = ("mod", r, valnode(val))
-
-            case ["eql", reg, val]:
-                r = regs[reg]
-                if val == "0" and r[0] == "eql":
-                    regs[reg] = ("neq", r[1], r[2])
-                else:
-                    regs[reg] = ("eql", r, valnode(val))
-
-    return regs
-
-def depth(node):
-    if len(node) == 2:
-        return 1
-    else:
-        return max(depth(node[1]), depth(node[2])) + 1
-
-def lines(node):
-    if len(node) == 2:
-        return 1
-    else:
-        return 1 + lines(node[1]) + lines(node[2])
-
-# regs = make_ast("day24_input.txt")
-# for reg, ast in regs.items():
-#     print(reg, depth(ast), lines(ast))
-
 lines = [l.strip() for l in Path("day24_input.txt").open()]
 chunks = [lines[i:i+18] for i in range(0, len(lines), 18)]
 for i in range(18):
@@ -83,4 +13,23 @@ for i in range(18):
         print(
             chunks[0][i].split()[0],
             chunks[0][i].split()[1],
-            [c[i].split()[2] for c in chunks])
+            [int(c[i].split()[2]) for c in chunks])
+
+# inp w
+# mul x 0
+# add x z
+# mod x 26
+# div z [1, 1, 1, 26, 26, 1, 1, 26, 1, 26, 1, 26, 26, 26]
+# add x [12, 12, 12, -9, -9, 14, 14, -10, 15, -2, 11, -15, -9, -3]
+# eql x w
+# eql x 0
+# mul y 0
+# add y 25
+# mul y x
+# add y 1
+# mul z y
+# mul y 0
+# add y w
+# add y [9, 4, 2, 5, 1, 6, 11, 15, 7, 12, 15, 9, 12, 12]
+# mul y x
+# add z y
