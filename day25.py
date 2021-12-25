@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+from helpers import timeit
+
 def read_floor(fname):
     return np.array([[".>v".find(c) for c in l.strip()] for l in Path(fname).open()])
 
@@ -17,6 +19,7 @@ def print_floor(floor):
             print(".>v"[floor[nr,nc]], end="")
         print()
 
+@timeit
 def part1(fname):
     floor = read_floor(fname)
     for step_num in itertools.count(start=1):

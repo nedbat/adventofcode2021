@@ -8,15 +8,7 @@ from pathlib import Path
 
 import pytest
 
-def timeit(func):
-    import time
-    def wrapped(*args, **kwargs):
-        start = time.time()
-        ret = func(*args, **kwargs)
-        end = time.time()
-        print(f"{func.__name__}: {end - start:.4f}s")
-        return ret
-    return wrapped
+from helpers import timeit
 
 @dataclasses.dataclass(frozen=True)
 class Xyz:
