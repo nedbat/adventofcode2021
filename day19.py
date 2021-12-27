@@ -136,8 +136,8 @@ class Scanner:
         M = np.array([np.linalg.solve(ab, fv) for fv in aa.T]).T
         return M
 
-def part1(fname):
-    scanners = read_scanners(fname)
+def transforms_to_s0(scanners):
+    """Compute the transform matrices from each scanner to the first."""
     nscanners = len(scanners)
 
     # Find the transforms from each scanner to scanners[0]
@@ -158,6 +158,11 @@ def part1(fname):
                         got_some = True
             if got_some:
                 tried[idst] = True
+    return xforms
+
+def part1(fname):
+    scanners = read_scanners(fname)
+    xforms = transforms_to_s0(scanners)
 
     # Transform all the beacons
     beacon_points = set()
@@ -171,3 +176,24 @@ def test_part1():
 
 if __name__ == "__main__":
     print(f"part 1: {part1('day19_input.txt')}")
+
+def scanner_locations(fname):
+    scanners = read_scanners(fname)
+    xforms = transforms_to_s0(scanners)
+    locs = [next(points_from_array(np.array([[0,0,0,1]]) @ xf)) for xf in xforms]
+    return locs
+
+def test_scanner_locations():
+    locs = scanner_locations("day19_sample.txt")
+    assert locs[2] == Xyz(1105,-1205,1229)
+    assert locs[3] == Xyz(-92,-2380,-20)
+
+def part2(fname):
+    locs = scanner_locations(fname)
+    return max(sum(map(abs, (soa - sob).xyz)) for soa, sob in pairs(locs))
+
+def test_part2():
+    assert part2("day19_sample.txt") == 3621
+
+if __name__ == "__main__":
+    print(f"part 2: {part2('day19_input.txt')}")
